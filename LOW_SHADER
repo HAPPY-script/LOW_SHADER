@@ -12,27 +12,6 @@ local function createEnvironmentLight()
     if existingLight then
         existingLight:Destroy()
     end
-
-    -- Tạo một Part để gắn ánh sáng
-    local part = Instance.new("Part")
-    part.Size = Vector3.new(1, 1, 1)  -- Kích thước nhỏ
-    part.Position = Vector3.new(0, 50, 0)  -- Vị trí của Part
-    part.Anchored = true
-    part.CanCollide = false
-    part.Transparency = 1  -- Ẩn Part
-    part.Parent = workspace  -- Thêm vào workspace
-
-    -- Tạo attachment và gắn vào Part
-    local attachment = Instance.new("Attachment")
-    attachment.Parent = part
-
-    -- Thêm ánh sáng vào Attachment
-    local light = Instance.new("PointLight")
-    light.Name = "ShaderLight"
-    light.Brightness = 1.2
-    light.Range = 150
-    light.Color = Color3.fromRGB(255, 255, 220)
-    light.Parent = attachment
 end
 
 -- Tăng cường hiệu ứng phản chiếu trên tất cả các đối tượng
@@ -61,8 +40,8 @@ local function createBloomEffect()
     local bloom = game.Lighting:FindFirstChild("BloomEffect") or Instance.new("BloomEffect")
     bloom.Parent = game.Lighting
     bloom.Intensity = 0.8
-    bloom.Threshold = 1
-    bloom.Size = 15
+    bloom.Threshold = 3
+    bloom.Size = 30
 end
 
 -- Tạo hiệu ứng Blur (mờ nhẹ môi trường)
@@ -84,7 +63,6 @@ end
 
 -- Chạy tất cả các hiệu ứng shader
 local function applyShader()
-    createEnvironmentLight()  -- Tạo ánh sáng môi trường
     createBloomEffect()  -- Tạo hiệu ứng Bloom
     createBlurEffect()  -- Tạo hiệu ứng Blur
     updateEffects()  -- Cập nhật hiệu ứng shader
