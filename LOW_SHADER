@@ -1,0 +1,95 @@
+-- Tạo một biến flag để kiểm tra script có chạy chưa
+if _G.ShaderApplied then
+    print("Script đã chạy trước đó, không thể chạy lại.")
+    return
+end
+_G.ShaderApplied = true -- Đánh dấu script đã chạy
+
+-- Tạo ánh sáng môi trường (Environmental Light)
+local function createEnvironmentLight()
+    -- Loại bỏ ánh sáng cũ (nếu có)
+    local existingLight = workspace:FindFirstChild("ShaderLight")
+    if existingLight then
+        existingLight:Destroy()
+    end
+
+    -- Tạo một Part để gắn ánh sáng
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(1, 1, 1)  -- Kích thước nhỏ
+    part.Position = Vector3.new(0, 50, 0)  -- Vị trí của Part
+    part.Anchored = true
+    part.CanCollide = false
+    part.Transparency = 1  -- Ẩn Part
+    part.Parent = workspace  -- Thêm vào workspace
+
+    -- Tạo attachment và gắn vào Part
+    local attachment = Instance.new("Attachment")
+    attachment.Parent = part
+
+    -- Thêm ánh sáng vào Attachment
+    local light = Instance.new("PointLight")
+    light.Name = "ShaderLight"
+    light.Brightness = 1.2
+    light.Range = 150
+    light.Color = Color3.fromRGB(255, 255, 220)
+    light.Parent = attachment
+end
+
+-- Tăng cường hiệu ứng phản chiếu trên tất cả các đối tượng
+local function enhanceReflectance()
+    local objects = workspace:GetDescendants()
+    local batchSize = 200  -- Số lượng đối tượng xử lý mỗi lần (giảm tải)
+    local index = 1
+
+    -- Chia nhỏ công việc để tránh quá tải CPU
+    while index <= #objects do
+        for i = index, math.min(index + batchSize - 1, #objects) do
+            local obj = objects[i]
+            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
+                if obj.Reflectance < 0.2 then
+                    obj.Reflectance = 0.2
+                end
+            end
+        end
+        index = index + batchSize
+        task.wait()  -- Dừng lại mỗi khi xử lý một nhóm
+    end
+end
+
+-- Tạo hiệu ứng Bloom (ánh sáng lan tỏa)
+local function createBloomEffect()
+    local bloom = game.Lighting:FindFirstChild("BloomEffect") or Instance.new("BloomEffect")
+    bloom.Parent = game.Lighting
+    bloom.Intensity = 0.8
+    bloom.Threshold = 1
+    bloom.Size = 15
+end
+
+-- Tạo hiệu ứng Blur (mờ nhẹ môi trường)
+local function createBlurEffect()
+    local blur = game.Lighting:FindFirstChild("BlurEffect") or Instance.new("BlurEffect")
+    blur.Parent = game.Lighting
+    blur.Size = 2
+end
+
+-- Cập nhật hiệu ứng shader (tối ưu hóa bằng cách giảm xử lý liên tục)
+local function updateEffects()
+    -- Chỉ chạy cập nhật mỗi khi cần (dựa vào thay đổi trạng thái)
+    task.spawn(function()
+        while task.wait(0.2) do  -- Cập nhật hiệu ứng mỗi 0.2 giây
+            enhanceReflectance()
+        end
+    end)
+end
+
+-- Chạy tất cả các hiệu ứng shader
+local function applyShader()
+    createEnvironmentLight()  -- Tạo ánh sáng môi trường
+    createBloomEffect()  -- Tạo hiệu ứng Bloom
+    createBlurEffect()  -- Tạo hiệu ứng Blur
+    updateEffects()  -- Cập nhật hiệu ứng shader
+end
+
+-- Áp dụng shader
+applyShader()
+print("Shader đã được áp dụng thành công!")
